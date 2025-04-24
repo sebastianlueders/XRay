@@ -2,6 +2,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+# Data Loading
+
+
+
+
+
+# Preprocessing
+
+
 class DeepCNN(nn.Module):
 
     def __init__(self, num_classes=8):
@@ -88,3 +98,13 @@ class DeepCNN(nn.Module):
         x = self.fc3(x)
         
         return x
+    
+# Loss Function & Optimizer
+
+
+# Training & Validation Loop
+
+
+
+# Analysis & Plotting Performance
+

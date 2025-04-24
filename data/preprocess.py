@@ -23,7 +23,7 @@ class FERPlusPreprocessor:
         self._process_split('fer2013valid.csv', 'val')
         self._process_split('fer2013test.csv', 'test')
         self._create_dataset_info()
-        print("✅ FERPlus preprocessing complete.")
+        print("FERPlus preprocessing complete.")
 
     def _process_split(self, csv_file, split):
         df = pd.read_csv(os.path.join(self.data_path, csv_file))
