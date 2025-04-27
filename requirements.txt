@@ -1,7 +1,7 @@
 torch
 pandas
-cv2
 numpy
 tqdm
 torchvision
 matplotlib
+opencv-python
