@@ -63,20 +63,6 @@ facial-expression-recognition/
 └── .gitignore
 ```
 
-## Setup Instructions
-
-### 1. Install Dependencies
-
-```bash
-git clone https://github.com/your-username/facial-expression-recognition.git
-cd facial-expression-recognition
-python -m venv env
-source env/bin/activate
-pip install -r requirements.txt
-```
-
-### 2. (TBD)
-
 ## Authors
 
 Sebastian Lueders and Sid Dutta
