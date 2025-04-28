@@ -11,17 +11,16 @@ import matplotlib.pyplot as plt
 from train.load import get_dataloaders
 from models.SEResNet import SEResNet
 
+# Call like this from the project directory root: python -m train.train_SEResNet
 
 if __name__ == "__main__":
-    MODEL_NAME = "SEResNet-FER2013"   # Change for each 
-
+    MODEL_NAME = "SEResNet-FER2013"  # Change for each
 
     # Set up output directory for saving model results
     timestamp = datetime.now().strftime("%Y-%m-%d")
     output_dir = os.path.join("checkpoints", f"{MODEL_NAME}_{timestamp}")
     os.makedirs(output_dir, exist_ok=True)
     print(f"Saving all outputs to: {output_dir}")
-
 
     # Setup Training Device
     if torch.cuda.is_available():
@@ -33,17 +32,16 @@ if __name__ == "__main__":
 
     print(f"Using {device} device")
 
-
     # Load Data
     data_dir = "data/FER-2013/"  # Change based on dataset
 
-    train_loader, val_loader, test_loader = get_dataloaders(
+    train_loader, val_loader, _ = get_dataloaders(
         data_dir,
         img_size=48,
         batch_size=64,
         num_workers=2,
         val_split=0.2,
-        pin_memory=(device.type == "cuda")   # Changes to True when running with CUDA
+        pin_memory=(device.type == "cuda"),  # Changes to True when running with CUDA
     )
 
     # Instantiate model, optimizer, loss and scheduler (for dynamic LR)
@@ -54,10 +52,9 @@ if __name__ == "__main__":
 
     print(train_loader.dataset.dataset.class_to_idx)
 
-
     # Training Loop
     num_epochs = 30
-    best_val_loss = float('inf')
+    best_val_loss = float("inf")
 
     train_losses = []
     val_losses = []
@@ -98,7 +95,9 @@ if __name__ == "__main__":
         avg_val_loss = running_val_loss / len(val_loader)
         val_losses.append(avg_val_loss)
 
-        print(f"Epoch {epoch+1}/{num_epochs} - Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}")
+        print(
+            f"Epoch {epoch+1}/{num_epochs} - Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}"
+        )
 
         scheduler.step()
 
@@ -112,15 +111,15 @@ if __name__ == "__main__":
     torch.save(model.state_dict(), final_model_path)
     print(f"Saved final model to {final_model_path}")
 
-
     # Save training metrics
-    metrics_df = pd.DataFrame({
-        "train_loss": train_losses,
-        "val_loss": val_losses,
-    })
+    metrics_df = pd.DataFrame(
+        {
+            "train_loss": train_losses,
+            "val_loss": val_losses,
+        }
+    )
 
     metrics_path = os.path.join(output_dir, "metrics.csv")
     metrics_df.to_csv(metrics_path, index=False)
 
     print(f"Saved metrics to {metrics_path}")
-
