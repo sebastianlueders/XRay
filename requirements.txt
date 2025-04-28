@@ -5,4 +5,5 @@ tqdm
 torchvision
 matplotlib
 opencv-python
-
+seaborn
+scikit-learn
