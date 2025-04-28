@@ -1,8 +1,10 @@
 import torch
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, Subset
 import os
 import json
+from sklearn.model_selection import StratifiedShuffleSplit
+import numpy as np
 
 
 def get_dataloaders(
@@ -83,13 +85,18 @@ def get_dataloaders(
     )
 
     full_train_dataset = datasets.ImageFolder(root=train_dir, transform=train_transform)
-    train_size = int((1.0 - val_split) * len(full_train_dataset))
-    val_size = len(full_train_dataset) - train_size
-    train_dataset, val_dataset = random_split(
-        full_train_dataset, [train_size, val_size]
-    )
+    targets = [label for _, label in full_train_dataset]
 
+    # Stratified split
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=val_split, random_state=42)
+    train_idx, val_idx = next(sss.split(np.zeros(len(targets)), targets))
+
+    train_dataset = Subset(full_train_dataset, train_idx)
+    val_dataset = Subset(full_train_dataset, val_idx)
+
+    # Change transform for val_dataset
     val_dataset.dataset.transform = val_test_transform
+
     test_dataset = datasets.ImageFolder(root=test_dir, transform=val_test_transform)
 
     train_loader = DataLoader(
