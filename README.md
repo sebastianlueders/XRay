@@ -2,12 +2,12 @@
 
 ## Overview
 
-This project aims to build a deep learning-based system for classifying facial expressions using convolutional neural networks (CNNs) in PyTorch. The final product will allow users to upload an image of a face and receive a predicted facial expression. The focus is on creating a proof of concept (PoC) within **3 weeks** by two software engineers.
+This project aims to build a deep learning-based system for classifying facial expressions using convolutional neural networks (CNNs) in PyTorch. The final product will allow users to upload an image of a face and receive a predicted facial expression.
 
 ## Goals
 
 - Build and train a CNN to classify facial expressions with high accuracy  
-- Use the [FERPlus dataset](https://github.com/microsoft/FERPlus) (potentially extended with other datasets — see planning docs for details)  
+- Use the [FER2013 dataset]([https://github.com/microsoft/FERPlus](https://www.kaggle.com/datasets/msambare/fer2013)) (potentially extended with other datasets — see planning docs for details)  
 - Create a minimal user interface for image upload and real-time inference  
 - Prepare a demo-ready prototype for presentations  
 
@@ -62,20 +62,6 @@ facial-expression-recognition/
 ├── README.md          # Project overview and instructions
 └── .gitignore
 ```
-
-## Setup Instructions
-
-### 1. Install Dependencies
-
-```bash
-git clone https://github.com/your-username/facial-expression-recognition.git
-cd facial-expression-recognition
-python -m venv env
-source env/bin/activate
-pip install -r requirements.txt
-```
-
-### 2. (TBD)
 
 ## Authors
 
