@@ -120,8 +120,6 @@ if __name__ == "__main__":
             f"Epoch {epoch+1}/{num_epochs} - Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}"
         )
 
-        scheduler.step()
-
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
             p_counter = 0
