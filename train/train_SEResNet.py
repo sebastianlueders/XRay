@@ -10,6 +10,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from train.load import get_dataloaders
 from models.SEResNet import SEResNet
+from collections import Counter
 
 # Call like this from the project directory root: python -m train.train_SEResNet
 
@@ -44,17 +45,33 @@ if __name__ == "__main__":
         pin_memory=(device.type == "cuda"),  # Changes to True when running with CUDA
     )
 
+    # Weighted Loss Adjustment to accomodate Fer dataset skew
+    all_labels = []
+    for _, labels in train_loader:
+        all_labels.extend(labels.cpu().numpy())
+
+    class_counts = Counter(all_labels)
+    counts_list = [class_counts[i] for i in range(len(class_counts))]
+
+    weights = 1.0 / torch.tensor(counts_list, dtype=torch.float)
+    weights = weights / weights.sum()
+
     # Instantiate model, optimizer, loss and scheduler (for dynamic LR)
     model = SEResNet(input_channels=3, num_classes=7).to(device)
-    criterion = torch.nn.CrossEntropyLoss()
+    criterion = torch.nn.CrossEntropyLoss(weight=weights.to(device))
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="min", factor=0.5, patience=3
+    )  # Auto-reduce LR in the case of validation loss growth over 3 consecutive epochs
 
     print(train_loader.dataset.dataset.class_to_idx)
 
-    # Training Loop
+    # Pre-training variable init
     num_epochs = 30
     best_val_loss = float("inf")
+
+    patience = 5
+    p_counter = 0
 
     train_losses = []
     val_losses = []
@@ -63,6 +80,7 @@ if __name__ == "__main__":
     checkpoint_dir = "checkpoints"
     os.makedirs(checkpoint_dir, exist_ok=True)
 
+    # Training Loop
     for epoch in range(num_epochs):
         model.train()
         running_train_loss = 0.0
@@ -95,6 +113,9 @@ if __name__ == "__main__":
         avg_val_loss = running_val_loss / len(val_loader)
         val_losses.append(avg_val_loss)
 
+        # For adjusting LR on the condiiton of validation loss plateau
+        scheduler.step(avg_val_loss)
+
         print(
             f"Epoch {epoch+1}/{num_epochs} - Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}"
         )
@@ -103,9 +124,18 @@ if __name__ == "__main__":
 
         if avg_val_loss < best_val_loss:
             best_val_loss = avg_val_loss
+            p_counter = 0
             best_model_path = os.path.join(output_dir, "Best.pth")
             torch.save(model.state_dict(), best_model_path)
             print(f"Saved best model to {best_model_path}")
+        else:
+            p_counter += 1
+
+        if p_counter >= patience:
+            print(
+                f"Early stopping triggered after meeting patience threshold of {patience}"
+            )
+            break
 
     final_model_path = os.path.join(output_dir, "Final.pth")
     torch.save(model.state_dict(), final_model_path)
