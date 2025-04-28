@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
 
     # Set up output directory for saving model results
-    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M")
+    timestamp = datetime.now().strftime("%Y-%m-%d")
     output_dir = os.path.join("checkpoints", f"{MODEL_NAME}_{timestamp}")
     os.makedirs(output_dir, exist_ok=True)
     print(f"Saving all outputs to: {output_dir}")
@@ -51,6 +51,8 @@ if __name__ == "__main__":
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+
+    print(train_loader.dataset.dataset.class_to_idx)
 
 
     # Training Loop
