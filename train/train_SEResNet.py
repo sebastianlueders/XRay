@@ -15,6 +15,7 @@ from collections import Counter
 
 # Call like this from the project directory root: python -m train.train_SEResNet
 
+
 class LabelSmoothingCrossEntropy(torch.nn.Module):
     def __init__(self, smoothing=0.1):
         super(LabelSmoothingCrossEntropy, self).__init__()
@@ -28,6 +29,7 @@ class LabelSmoothingCrossEntropy(torch.nn.Module):
         smooth_loss = -logprobs.mean(dim=-1)
         loss = confidence * nll_loss + self.smoothing * smooth_loss
         return loss.mean()
+
 
 if __name__ == "__main__":
     MODEL_NAME = "SEResNet-FER2013"  # Change for each
@@ -73,13 +75,9 @@ if __name__ == "__main__":
 
     # Instantiate model, optimizer, loss and scheduler (for dynamic LR)
     model = SEResNet(input_channels=3, num_classes=7).to(device)
-    criterion = LabelSmoothingCrossEntropy(smoothing=0.1)
+    criterion = LabelSmoothingCrossEntropy(smoothing=0.05)
     optimizer = optim.SGD(
-    model.parameters(),
-    lr=0.1,
-    momentum=0.9,
-    weight_decay=1e-4,
-    nesterov=True
+        model.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4, nesterov=True
     )
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", factor=0.5, patience=3
