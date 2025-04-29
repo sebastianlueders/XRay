@@ -7,12 +7,27 @@ from datetime import datetime
 
 from torchvision import transforms, datasets
 import torch.optim as optim
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from train.load import get_dataloaders
 from models.SEResNet import SEResNet
 from collections import Counter
 
 # Call like this from the project directory root: python -m train.train_SEResNet
+
+class LabelSmoothingCrossEntropy(torch.nn.Module):
+    def __init__(self, smoothing=0.1):
+        super(LabelSmoothingCrossEntropy, self).__init__()
+        self.smoothing = smoothing
+
+    def forward(self, pred, target):
+        confidence = 1.0 - self.smoothing
+        logprobs = F.log_softmax(pred, dim=-1)
+        nll_loss = -logprobs.gather(dim=-1, index=target.unsqueeze(1))
+        nll_loss = nll_loss.squeeze(1)
+        smooth_loss = -logprobs.mean(dim=-1)
+        loss = confidence * nll_loss + self.smoothing * smooth_loss
+        return loss.mean()
 
 if __name__ == "__main__":
     MODEL_NAME = "SEResNet-FER2013"  # Change for each
@@ -38,7 +53,7 @@ if __name__ == "__main__":
 
     train_loader, val_loader, _ = get_dataloaders(
         data_dir,
-        img_size=48,
+        img_size=64,
         batch_size=64,
         num_workers=2,
         val_split=0.2,
@@ -58,8 +73,14 @@ if __name__ == "__main__":
 
     # Instantiate model, optimizer, loss and scheduler (for dynamic LR)
     model = SEResNet(input_channels=3, num_classes=7).to(device)
-    criterion = torch.nn.CrossEntropyLoss(weight=weights.to(device))
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    criterion = LabelSmoothingCrossEntropy(smoothing=0.1)
+    optimizer = optim.SGD(
+    model.parameters(),
+    lr=0.1,
+    momentum=0.9,
+    weight_decay=1e-4,
+    nesterov=True
+    )
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="min", factor=0.5, patience=3
     )  # Auto-reduce LR in the case of validation loss growth over 3 consecutive epochs
@@ -67,10 +88,10 @@ if __name__ == "__main__":
     print(train_loader.dataset.dataset.class_to_idx)
 
     # Pre-training variable init
-    num_epochs = 30
+    num_epochs = 40
     best_val_loss = float("inf")
 
-    patience = 5
+    patience = 10
     p_counter = 0
 
     train_losses = []

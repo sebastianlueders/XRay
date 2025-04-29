@@ -70,13 +70,14 @@ def get_dataloaders(
     # Added heavier data augmentation to reduce model reliance on class distribution
     train_transform = transforms.Compose(
         [
-            transforms.Resize((img_size, img_size)),
+            transforms.RandomResizedCrop(img_size, scale=(0.8, 1.2)), # random zoom/crop
             transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(10),
+            transforms.RandomRotation(15),  # increased rotation
             transforms.ColorJitter(
-                brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1
+                brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1  # stronger brightness/contrast/saturation jitter
             ),
             transforms.ToTensor(),
+            transforms.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3)),  # Random Erasing (cutout style)
             transforms.Normalize(mean=mean, std=std),
         ]
     )
